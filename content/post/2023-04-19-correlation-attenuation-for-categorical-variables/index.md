@@ -10,21 +10,29 @@ tags:
   - Categorical Variables
 ---
 
+
+
+
+
 # An Intro to Correlation Attenuation
 
 Correlation is the degree to which two variables associate with one another. The correlation formula between two random variables (i.e., X and Y) is:
 
-where `\(\sigma\)` is the standard deviation.
 
-When one of the variable is categorized into dichotomous or categorical variables, the correlation `\(\rho(X,Y)\)` will be usually attenuated due to loss of information.
+`$$\rho(x,y) = \frac{COV(X, Y)}{\sigma_{X}\sigma_{Y}},$$`
+
+where `\(\sigma\)` is the standard deviation. 
+
+When one of the variable is categorized into dichotomous or categorical variables, the correlation `\(\rho(X,Y)\)` will be usually attenuated due to loss of information. 
 
 ## An Example of Attenuated Correlation for Dichotomous Variable
 
 Say `\(X\)` and `\(Y^*\)` have a correlation of .5 (i.e., `\(\rho(X, Y^*) = .5\)`), `\(Y^*\)` is dichotomized into `\(Y\)` so that 30% of `\(Y\)` is 0 and 70% of `\(Y\)` is 1. What is the correlation between `\(X\)` and `\(Y\)` now?
 
-Let’s simulate a dataset to see this attenuation:
+Let's simulate a dataset to see this attenuation:
 
-``` r
+
+```r
 # Set correlation between X and Y* to 0.5
 rho <- 0.5
 
@@ -53,12 +61,14 @@ knitr::kable(table(df$Y)/nrow(df),
              align = "c")
 ```
 
+
+
 | Label | Proportion |
 |:-----:|:----------:|
-|   0   |   0.7033   |
-|   1   |   0.2967   |
+|   0   |   0.7044   |
+|   1   |   0.2956   |
 
-``` r
+```r
 
 # Show correlations between X and Y*, and X and Y
 knitr::kable(
@@ -67,19 +77,36 @@ knitr::kable(
 )
 ```
 
-| `\(\rho_{(X, Y*)}\)` | `\(\rho_{(X, Y)}\)` |
-|---------------------:|--------------------:|
-|            0.5052412 |           0.3865577 |
 
-From this example, we can see the correlation is attenuated when one of the continuous variable is dichotomized. According to the correlation formula and expectation of covariance formula, we can derive the attenuation factor due to categorization. Note that the value of dichotomozing `\(Y*\)` for desired proportion is called `threshold`.
+
+| `\(\rho_{(X, Y*)}\)`| `\(\rho_{(X, Y)}\)`|
+|----------------:|---------------:|
+|        0.5063404|       0.3825829|
+
+From this example, we can see the correlation is attenuated when one of the continuous variable is dichotomized. According to the correlation formula and expectation of covariance formula, we can derive the attenuation factor due to categorization. Note that the value of dichotomozing `\(Y*\)` for desired proportion is called `threshold`. 
+
+
+`$$Attenuation Factor = \frac{COV(X, Y)}{COV(X, Y^*)}*\sqrt{\frac{\sigma^2_{Y^*}}{\sigma^2_{Y}}},$$`
+
+
+
+`$$Attenuation Factor = \frac{E(XY) - E(X)E(Y)}{E(XY^*) - E(X)E(Y^*)}*\sqrt{\frac{\sigma^2_{Y^*}}{\sigma^2_{Y}}}$$`
+
 
 Thresholds are only dependent on the variable being categorized (i.e., `\(Y^*\)` in this case). To calculate the expectation of `\(XY\)` and `\(XY^*\)` in the formula above, we need to use bivariate normal distribution:
 
-We can code this formula into a `R` function and use it later.
+
+`$$f_{x,y}(x,y) = \frac{1}{2\pi\sigma_{x}\sigma_{y}\sqrt{1 - \rho^2}}*e^{-\frac{1}{2(1 - \rho^2)}*[(\frac{x - \mu_{x}}{\sigma_{x}})^2 + (\frac{y - \mu_{y}}{\sigma_{y}})^2 - 2\rho\frac{(x - \mu_{x})(y - \mu_{y})}{\sigma_{x}\sigma_{y}}]}$$`
+
+
+We can code this formula into a `R` function and use it later. 
+
+
 
 Now we can use the derived formula instead of simulated dataset to calculated attenuated `\(R^2\)`:
 
-``` r
+
+```r
 # Analytic calculation
 rho <- 0.5
 thres <- qnorm(0.3)
@@ -98,7 +125,8 @@ cal_cor <- att_fac*lat_cor
 
 Then we can compare the results from analytic calculation and simulated results:
 
-``` r
+
+```r
 summary_1 <- round(c(rho, attenuation_bi, cor_xy_bi, att_fac, cal_cor), 3)
 names(summary_1) <- c("Correlation_XY*", "Attenuation_Formula", 
                       "Correlation_Formula", "Attenuation_Data", 
@@ -108,19 +136,21 @@ knitr::kable(summary_1,
              col.names = " ")
 ```
 
-|                     |       |
-|:--------------------|:-----:|
-| Correlation_XY\*    | 0.500 |
-| Attenuation_Formula | 0.759 |
-| Correlation_Formula | 0.379 |
-| Attenuation_Data    | 0.765 |
-| Correlation_Data    | 0.387 |
+
+
+|                    |       |
+|:-------------------|:-----:|
+|Correlation_XY*     | 0.500 |
+|Attenuation_Formula | 0.759 |
+|Correlation_Formula | 0.379 |
+|Attenuation_Data    | 0.756 |
+|Correlation_Data    | 0.383 |
 
 ## An Example of Attenuated Correlation for Categorical Variable with Three Thresholds
 
 Given `\(Y^*\)` is discretized into `\(Y\)` with 4 categories (ie., 50% is 0, 30% is 1, 10% is 2, 10% is 3), what is the correlation between `\(X\)` and `\(Y\)`?
 
-``` r
+```r
 # Assuming X and Y* ~ N(0,1)
 # for standard bivariate normal distribution, E(XY*) = rho
 rho <- 0.5
@@ -148,7 +178,8 @@ cor_xy_cat <- attenuation_cat*rho
 
 # Verification with simulated data
 
-``` r
+
+```r
 rho <- 0.5
 sd_x <- 1
 sd_y <- 1
@@ -176,7 +207,8 @@ att_fac <- (cov(df3$y1, df3$y2_mul)/cov(df3$y1, df3$y2))*sqrt(var(df3$y2)/var(df
 cal_cor <- att_fac*lat_cor
 ```
 
-``` r
+
+```r
 summary_2 <- round(c(rho, attenuation_cat, cor_xy_cat, att_fac, cal_cor), 3)
 names(summary_2) <- c("Correlation_XY*", "Attenuation_Formula", 
                       "Correlation_Formula", "Attenuation_Data", 
@@ -186,19 +218,31 @@ knitr::kable(summary_2,
              col.names = " ")
 ```
 
-|                     |       |
-|:--------------------|:-----:|
-| Correlation_XY\*    | 0.500 |
-| Attenuation_Formula | 0.872 |
-| Correlation_Formula | 0.436 |
-| Attenuation_Data    | 0.872 |
-| Correlation_Data    | 0.432 |
 
-# Reasoning of Generalization to X and Y\* with Any Means and Variances
+
+|                    |       |
+|:-------------------|:-----:|
+|Correlation_XY*     | 0.500 |
+|Attenuation_Formula | 0.872 |
+|Correlation_Formula | 0.436 |
+|Attenuation_Data    | 0.864 |
+|Correlation_Data    | 0.439 |
+
+# Reasoning of Generalization to X and Y* with Any Means and Variances
 
 It is highly probable that `\(X\)` and `\(Y*\)` do not follow a standard normal distribution in practical research. We would like to prove that the attenuation of correlation is generalizeable to `\(X\)` and `\(Y^*\)` with any means and variances when `\(Y^*\)` is categorized with any numbers of categories.
 
-let’s say `\(Y^{*}\)` is categorized to Y (c = 4; c = \[0, 1, 2, 3\]),
+
+let's say `\(Y^{*}\)` is categorized to Y (c = 4; c = \[0, 1, 2, 3\]),
+
+`$$E(X,Y) = 
+  \begin{cases}
+    0, & \text{if } Y^{*} \le \tau_{1} \\  
+    E(X | Y = 1), & \text{if } \tau_{1} \le Y^{*} \le \tau_{2} \\
+    E(X | Y = 2), & \text{if } \tau_{2} \le Y^{*} \le \tau_{3} \\
+    E(X | Y = 3), & \text{if } Y^{*} > \tau_{3}
+  \end{cases}$$`
+
 
 Take one category as one example, for `\(E(X | Y = 1)\)` with `\(\tau_{1} \le Y^{*} \le \tau_{2}\)` and `\(c = 1\)`: `\(E(X | Y = 1) = \int_{-\infty}^{\infty} \int_{\tau_{1}}^{\tau_{2}} \text{x} y^{*} f_{(x, y^{\ast})} d_{x} d_{y^{*}}\)`
 
@@ -206,21 +250,34 @@ Now the distributions of X and Y are dependent on their mean and variance. We ca
 
 Let `\(z_{x} = \frac{x - \mu_{x}}{\sigma_{x}}\)` and `\(z_{y^{*}} = \frac{y^{*} - \mu_{y^{*}}}{\sigma_{y^{*}}}\)`, then,
 
-and,
+
+`$$f_{x,y^{*}}(x,y^{*}) = \frac{1}{2\pi\sigma_{x}\sigma_{y^{*}}\sqrt{1 - \rho^2}}*e^{-\frac{1}{2(1 - \rho^2)}*[z_{x}^2 + z_{y^{*}}^2 - 2\rho z_{x} z_{y^{*}}]},$$`
+
+and transform the formula into: 
+
+
+`$$E(X | Y = 1) = \int_{-\infty}^{\infty}\int_{\tau_{1}}^{\tau_{2}}xy^{*}\frac{d_{x}d_{y^{*}}}{2\pi\sigma_{x}\sigma_{y^{*}}\sqrt{1 - \rho^2}}*e^{-\frac{1}{2(1 - \rho^2)}*[z_{x}^2 + z_{y^{*}}^2 - 2\rho z_{x} z_{y^{*}}]}$$`
 
 Because of the property of derivation,
 
-, and it is the same for `\(d(z_{y^{*}})\)`
 
-Thus, the equation of `\(E(X | Y = 1)\)` becomes
+`$$\frac{d(x)}{\sigma_{x}} = d(\frac{x - \mu_{x}}{\sigma_{x}}) = d(z_{x}),$$`
 
-The “new” values of limits, e.g., `\(\frac{\tau_{1} - \mu_{y^{*}}}{\sigma_{y^{*}}}\)`, are linear tranformed using the mean and variance of `\(Y^{*}\)`. It means that no matter how threshold values change due to mean and variance of `\(Y^{*}\)`, we can always z-tranform them back so that X and `\(Y^{*}\)` always follow a standard bivariate normal distribution. In other words, as long as we know the threshold values and proportion of categories of the categorized variable, and X and `\(Y^{*}\)` follow normal distributions, we should be able to compute the attenuated `\(R^2\)` no matter the mean and variance of `\(Y^{*}\)`.
+and it is the same for `\(d(z_{y^{*}})\)`.
+
+Thus, the equation of `\(E(X | Y = 1)\)` becomes:
+
+
+`$$E(X | Y = 1) = \int_{-\infty}^{\infty}\int_{\frac{\tau_{1} - \mu_{y^{*}}}{\sigma_{y^{*}}}}^{\frac{\tau_{2} - \mu_{y^{*}}}{\sigma_{y^{*}}}}xy^{*}\frac{1}{2\pi\sqrt{1 - \rho^2}}*e^{-\frac{1}{2(1 - \rho^2)}*[z_{x}^2 + z_{y^{*}}^2 - 2\rho z_{x} z_{y^{*}}]}d(z_{x})d(z_{y^{*}})$$`
+
+The "new" values of limits, e.g., `\(\frac{\tau_{1} - \mu_{y^{*}}}{\sigma_{y^{*}}}\)`, are linear tranformed using the mean and variance of `\(Y^{*}\)`. It means that no matter how threshold values change due to mean and variance of `\(Y^{*}\)`, we can always z-tranform them back so that X and `\(Y^{*}\)` always follow a standard bivariate normal distribution. In other words, as long as we know the threshold values and proportion of categories of the categorized variable, and X and `\(Y^{*}\)` follow normal distributions, we should be able to compute the attenuated `\(R^2\)` no matter the mean and variance of `\(Y^{*}\)`.
 
 # Verification with simulated data (random mean and variance)
 
-Now it’s time to verify if our reasoning works with any means and variances for dichotomous `\(Y\)` and categorical `\(Y\)`.
+Now it's time to verify if our reasoning works with any means and variances for dichotomous `\(Y\)` and categorical `\(Y\)`.
 
-``` r
+
+```r
 rho <- 0.5
 sd_x <- rnorm(1, 1, 0.5)
 sd_y <- rnorm(1, 1.5, 0.3)
@@ -243,7 +300,8 @@ att_fac <- (cov(df2$y1, df2$y2_cat)/cov(df2$y1, df2$y2))*sqrt(var(df2$y2)/var(df
 cal_cor <- att_fac*lat_cor
 ```
 
-``` r
+
+```r
 summary_3 <- round(c(rho, attenuation_bi, cor_xy_bi, att_fac, cal_cor), 3)
 names(summary_3) <- c("Correlation_XY*", "Attenuation_Formula", 
                       "Correlation_Formula", "Attenuation_Data", 
@@ -253,15 +311,18 @@ knitr::kable(summary_3,
              col.names = " ")
 ```
 
-|                     |       |
-|:--------------------|:-----:|
-| Correlation_XY\*    | 0.500 |
-| Attenuation_Formula | 0.759 |
-| Correlation_Formula | 0.379 |
-| Attenuation_Data    | 0.758 |
-| Correlation_Data    | 0.379 |
 
-``` r
+
+|                    |       |
+|:-------------------|:-----:|
+|Correlation_XY*     | 0.500 |
+|Attenuation_Formula | 0.759 |
+|Correlation_Formula | 0.379 |
+|Attenuation_Data    | 0.758 |
+|Correlation_Data    | 0.379 |
+
+
+```r
 rho <- 0.5
 sd_x <- rnorm(1, 1, 0.5)
 sd_y <- rnorm(1, 1.5, 0.3)
@@ -289,7 +350,8 @@ att_fac <- (cov(df3$y1, df3$y2_mul)/cov(df3$y1, df3$y2))*sqrt(var(df3$y2)/var(df
 cal_cor <- att_fac*lat_cor
 ```
 
-``` r
+
+```r
 summary_4 <- round(c(rho, attenuation_cat, cor_xy_cat, att_fac, cal_cor), 3)
 names(summary_4) <- c("Correlation_XY*", "Attenuation_Formula", 
                       "Correlation_Formula", "Attenuation_Data", 
@@ -299,12 +361,22 @@ knitr::kable(summary_4,
              col.names = " ")
 ```
 
-|                     |       |
-|:--------------------|:-----:|
-| Correlation_XY\*    | 0.500 |
-| Attenuation_Formula | 0.872 |
-| Correlation_Formula | 0.436 |
-| Attenuation_Data    | 0.872 |
-| Correlation_Data    | 0.436 |
 
-It seems that the comparison of attenuated `\(R^2\)` values calculated by the formula and from the simulated results are highly similar.
+
+|                    |       |
+|:-------------------|:-----:|
+|Correlation_XY*     | 0.500 |
+|Attenuation_Formula | 0.872 |
+|Correlation_Formula | 0.436 |
+|Attenuation_Data    | 0.872 |
+|Correlation_Data    | 0.436 |
+
+It seems that the comparison of attenuated `\(R^2\)` values calculated by the formula and from the simulated results are highly similar. 
+
+
+
+
+
+
+
+
