@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.111.3">
+
+
+<title>Correlation Attenuation for Categorical Variables - My cool website</title>
+<meta property="og:title" content="Correlation Attenuation for Categorical Variables - My cool website">
+
+
+  <link href='/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+    <h1 class="article-title">Correlation Attenuation for Categorical Variables</h1>
+
+    
+    <span class="article-meta">
+                    <span class="article-duration">7 min read</span>
+      Gengrui (Jimmy) Zhang <br> 
+      Apr/19/2023 <br> 
+      
+      
+      Categories:
+      
+      <a href='/categories/blogs'>Blogs</a>
+      <br>
+      
+      
+      
+      Tags:
+      
+      <a href='/tags/correlation'>Correlation</a>
+      
+      <a href='/tags/categorical-variables'>Categorical Variables</a>
+      <br>
+      
+      <br>
+    </span>
+    
+    
+    
+    <div class="article-content">
+      <h1 id="an-intro-to-correlation-attenuation">An Intro to Correlation Attenuation</h1>
+<p>Correlation is the degree to which two variables associate with one another. The correlation formula between two random variables (i.e., X and Y) is:</p>
+<p>where <code>\(\sigma\)</code> is the standard deviation.</p>
+<p>When one of the variable is categorized into dichotomous or categorical variables, the correlation <code>\(\rho(X,Y)\)</code> will be usually attenuated due to loss of information.</p>
+<h2 id="an-example-of-attenuated-correlation-for-dichotomous-variable">An Example of Attenuated Correlation for Dichotomous Variable</h2>
+<p>Say <code>\(X\)</code> and <code>\(Y^*\)</code> have a correlation of .5 (i.e., <code>\(\rho(X, Y^*) = .5\)</code>), <code>\(Y^*\)</code> is dichotomized into <code>\(Y\)</code> so that 30% of <code>\(Y\)</code> is 0 and 70% of <code>\(Y\)</code> is 1. What is the correlation between <code>\(X\)</code> and <code>\(Y\)</code> now?</p>
+<p>Let’s simulate a dataset to see this attenuation:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#75715e"># Set correlation between X and Y* to 0.5</span>
+</span></span><span style="display:flex;"><span>rho <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0.5</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Assume X and Y*~N(0,1) for now</span>
+</span></span><span style="display:flex;"><span>sd_x <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>sd_y <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>cov_xy <span style="color:#f92672">&lt;-</span> rho<span style="color:#f92672">*</span>sd_x<span style="color:#f92672">*</span>sd_y
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Simulate correlated X and Y*</span>
+</span></span><span style="display:flex;"><span>df <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as.data.frame</span>(
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">mvrnorm</span>(n <span style="color:#f92672">=</span> <span style="color:#ae81ff">1e4</span>,
+</span></span><span style="display:flex;"><span>          mu <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>),
+</span></span><span style="display:flex;"><span>          Sigma <span style="color:#f92672">=</span> <span style="color:#a6e22e">matrix</span>(<span style="color:#a6e22e">c</span>(sd_x^2, cov_xy,
+</span></span><span style="display:flex;"><span>                           cov_xy, sd_y^2),
+</span></span><span style="display:flex;"><span>                         ncol <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>))
+</span></span><span style="display:flex;"><span>  )
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">names</span>(df) <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;X&#34;</span>, <span style="color:#e6db74">&#34;Y*&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Manually dichotomize Y* to 0 and 1</span>
+</span></span><span style="display:flex;"><span>df <span style="color:#f92672">&lt;-</span> df <span style="color:#f92672">%&gt;%</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">mutate</span>(Y <span style="color:#f92672">=</span> <span style="color:#a6e22e">ifelse</span>(`Y*` <span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.7</span>, <span style="color:#a6e22e">mean</span>(df<span style="color:#f92672">$</span>`Y*`), <span style="color:#a6e22e">sd</span>(df<span style="color:#f92672">$</span>`Y*`)), <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Show proportion of Y</span>
+</span></span><span style="display:flex;"><span>knitr<span style="color:#f92672">::</span><span style="color:#a6e22e">kable</span>(<span style="color:#a6e22e">table</span>(df<span style="color:#f92672">$</span>Y)<span style="color:#f92672">/</span><span style="color:#a6e22e">nrow</span>(df),
+</span></span><span style="display:flex;"><span>             col.names <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Label&#34;</span>, <span style="color:#e6db74">&#34;Proportion&#34;</span>),
+</span></span><span style="display:flex;"><span>             align <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;c&#34;</span>)
+</span></span></code></pre></div><table>
+<thead>
+<tr>
+<th style="text-align:center">Label</th>
+<th style="text-align:center">Proportion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0</td>
+<td style="text-align:center">0.7033</td>
+</tr>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0.2967</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Show correlations between X and Y*, and X and Y</span>
+</span></span><span style="display:flex;"><span>knitr<span style="color:#f92672">::</span><span style="color:#a6e22e">kable</span>(
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">cbind</span>(<span style="color:#a6e22e">cor</span>(df<span style="color:#f92672">$</span>X, df<span style="color:#f92672">$</span>`Y*`), <span style="color:#a6e22e">cor</span>(df<span style="color:#f92672">$</span>X, df<span style="color:#f92672">$</span>Y)),
+</span></span><span style="display:flex;"><span>  col.names <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;$\\rho_{(X, Y*)}$&#34;</span>, <span style="color:#e6db74">&#34;$\\rho_{(X, Y)}$&#34;</span>) 
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><table>
+<thead>
+<tr>
+<th style="text-align:right"><code>\(\rho_{(X, Y*)}\)</code></th>
+<th style="text-align:right"><code>\(\rho_{(X, Y)}\)</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0.5052412</td>
+<td style="text-align:right">0.3865577</td>
+</tr>
+</tbody>
+</table>
+<p>From this example, we can see the correlation is attenuated when one of the continuous variable is dichotomized. According to the correlation formula and expectation of covariance formula, we can derive the attenuation factor due to categorization. Note that the value of dichotomozing <code>\(Y*\)</code> for desired proportion is called <code>threshold</code>.</p>
+<p>Thresholds are only dependent on the variable being categorized (i.e., <code>\(Y^*\)</code> in this case). To calculate the expectation of <code>\(XY\)</code> and <code>\(XY^*\)</code> in the formula above, we need to use bivariate normal distribution:</p>
+<p>We can code this formula into a <code>R</code> function and use it later.</p>
+<p>Now we can use the derived formula instead of simulated dataset to calculated attenuated <code>\(R^2\)</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#75715e"># Analytic calculation</span>
+</span></span><span style="display:flex;"><span>rho <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0.5</span>
+</span></span><span style="display:flex;"><span>thres <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.3</span>)
+</span></span><span style="display:flex;"><span>var_ystar <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>var_y <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0.7</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">1-0.7</span>)
+</span></span><span style="display:flex;"><span>attenuation_bi <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pbnorm</span>(<span style="color:#f92672">-</span><span style="color:#66d9ef">Inf</span>, <span style="color:#66d9ef">Inf</span>, thres, <span style="color:#66d9ef">Inf</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0.5</span>)<span style="color:#f92672">/</span>rho <span style="color:#f92672">*</span> <span style="color:#a6e22e">sqrt</span>(var_ystar<span style="color:#f92672">/</span>var_y)
+</span></span><span style="display:flex;"><span>cor_xy_bi <span style="color:#f92672">&lt;-</span> attenuation_bi<span style="color:#f92672">*</span>rho
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Simulated results</span>
+</span></span><span style="display:flex;"><span>lat_cor <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cor</span>(df<span style="color:#f92672">$</span>X, df<span style="color:#f92672">$</span>`Y*`)
+</span></span><span style="display:flex;"><span>obs_cor <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cor</span>(df<span style="color:#f92672">$</span>X, df<span style="color:#f92672">$</span>Y)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>att_fac <span style="color:#f92672">&lt;-</span> (<span style="color:#a6e22e">cov</span>(df<span style="color:#f92672">$</span>X, df<span style="color:#f92672">$</span>Y)<span style="color:#f92672">/</span><span style="color:#a6e22e">cov</span>(df<span style="color:#f92672">$</span>X, df<span style="color:#f92672">$</span>`Y*`))<span style="color:#f92672">*</span><span style="color:#a6e22e">sqrt</span>(<span style="color:#a6e22e">var</span>(df<span style="color:#f92672">$</span>`Y*`)<span style="color:#f92672">/</span><span style="color:#a6e22e">var</span>(df<span style="color:#f92672">$</span>Y))
+</span></span><span style="display:flex;"><span>cal_cor <span style="color:#f92672">&lt;-</span> att_fac<span style="color:#f92672">*</span>lat_cor
+</span></span></code></pre></div><p>Then we can compare the results from analytic calculation and simulated results:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>summary_1 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">round</span>(<span style="color:#a6e22e">c</span>(rho, attenuation_bi, cor_xy_bi, att_fac, cal_cor), <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">names</span>(summary_1) <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Correlation_XY*&#34;</span>, <span style="color:#e6db74">&#34;Attenuation_Formula&#34;</span>, 
+</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Correlation_Formula&#34;</span>, <span style="color:#e6db74">&#34;Attenuation_Data&#34;</span>, 
+</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Correlation_Data&#34;</span>)
+</span></span><span style="display:flex;"><span>knitr<span style="color:#f92672">::</span><span style="color:#a6e22e">kable</span>(summary_1,
+</span></span><span style="display:flex;"><span>             align <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;c&#34;</span>,
+</span></span><span style="display:flex;"><span>             col.names <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>)
+</span></span></code></pre></div><table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:center"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Correlation_XY*</td>
+<td style="text-align:center">0.500</td>
+</tr>
+<tr>
+<td style="text-align:left">Attenuation_Formula</td>
+<td style="text-align:center">0.759</td>
+</tr>
+<tr>
+<td style="text-align:left">Correlation_Formula</td>
+<td style="text-align:center">0.379</td>
+</tr>
+<tr>
+<td style="text-align:left">Attenuation_Data</td>
+<td style="text-align:center">0.765</td>
+</tr>
+<tr>
+<td style="text-align:left">Correlation_Data</td>
+<td style="text-align:center">0.387</td>
+</tr>
+</tbody>
+</table>
+<h2 id="an-example-of-attenuated-correlation-for-categorical-variable-with-three-thresholds">An Example of Attenuated Correlation for Categorical Variable with Three Thresholds</h2>
+<p>Given <code>\(Y^*\)</code> is discretized into <code>\(Y\)</code> with 4 categories (ie., 50% is 0, 30% is 1, 10% is 2, 10% is 3), what is the correlation between <code>\(X\)</code> and <code>\(Y\)</code>?</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#75715e"># Assuming X and Y* ~ N(0,1)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># for standard bivariate normal distribution, E(XY*) = rho</span>
+</span></span><span style="display:flex;"><span>rho <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0.5</span>
+</span></span><span style="display:flex;"><span>var_ystar <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>thres_1 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span>)
+</span></span><span style="display:flex;"><span>thres_2 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span>)
+</span></span><span style="display:flex;"><span>thres_3 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>p_less_than_thres1 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pnorm</span>(thres_1)
+</span></span><span style="display:flex;"><span>p_thres1_thres2 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pnorm</span>(thres_2) <span style="color:#f92672">-</span> <span style="color:#a6e22e">pnorm</span>(thres_1)
+</span></span><span style="display:flex;"><span>p_thres2_thres3 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pnorm</span>(thres_3) <span style="color:#f92672">-</span> <span style="color:#a6e22e">pnorm</span>(thres_2)
+</span></span><span style="display:flex;"><span>p_larger_than_thres3 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pnorm</span>(thres_3, lower.tail <span style="color:#f92672">=</span> F)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>e_y2 <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">*</span>p_less_than_thres1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>^2<span style="color:#f92672">*</span>p_thres1_thres2 <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>^2<span style="color:#f92672">*</span>p_thres2_thres3 <span style="color:#f92672">+</span> <span style="color:#ae81ff">3</span>^2<span style="color:#f92672">*</span>p_larger_than_thres3
+</span></span><span style="display:flex;"><span>e_y <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">*</span>p_thres1_thres2 <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>p_thres2_thres3 <span style="color:#f92672">+</span> <span style="color:#ae81ff">3</span><span style="color:#f92672">*</span>p_larger_than_thres3
+</span></span><span style="display:flex;"><span>var_y <span style="color:#f92672">&lt;-</span> e_y2 <span style="color:#f92672">-</span> e_y^2
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>attenuation_cat <span style="color:#f92672">&lt;-</span> (<span style="color:#ae81ff">0</span><span style="color:#f92672">*</span><span style="color:#a6e22e">pbnorm</span>(<span style="color:#f92672">-</span><span style="color:#66d9ef">Inf</span>, <span style="color:#66d9ef">Inf</span>, <span style="color:#f92672">-</span><span style="color:#66d9ef">Inf</span>, thres_1, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0.5</span>) <span style="color:#f92672">+</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">1</span><span style="color:#f92672">*</span><span style="color:#a6e22e">pbnorm</span>(<span style="color:#f92672">-</span><span style="color:#66d9ef">Inf</span>, <span style="color:#66d9ef">Inf</span>, thres_1, thres_2, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0.5</span>) <span style="color:#f92672">+</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span><span style="color:#a6e22e">pbnorm</span>(<span style="color:#f92672">-</span><span style="color:#66d9ef">Inf</span>, <span style="color:#66d9ef">Inf</span>, thres_2, thres_3, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0.5</span>) <span style="color:#f92672">+</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">3</span><span style="color:#f92672">*</span><span style="color:#a6e22e">pbnorm</span>(<span style="color:#f92672">-</span><span style="color:#66d9ef">Inf</span>, <span style="color:#66d9ef">Inf</span>, thres_3, <span style="color:#66d9ef">Inf</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0.5</span>))<span style="color:#f92672">/</span>rho <span style="color:#f92672">*</span> <span style="color:#a6e22e">sqrt</span>(var_ystar<span style="color:#f92672">/</span>var_y)
+</span></span><span style="display:flex;"><span>cor_xy_cat <span style="color:#f92672">&lt;-</span> attenuation_cat<span style="color:#f92672">*</span>rho
+</span></span></code></pre></div><h1 id="verification-with-simulated-data">Verification with simulated data</h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>rho <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0.5</span>
+</span></span><span style="display:flex;"><span>sd_x <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>sd_y <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>cov_xy <span style="color:#f92672">&lt;-</span> rho<span style="color:#f92672">*</span>sd_x<span style="color:#f92672">*</span>sd_y
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>df3 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as.data.frame</span>(<span style="color:#a6e22e">mvrnorm</span>(n <span style="color:#f92672">=</span> <span style="color:#ae81ff">1e4</span>,
+</span></span><span style="display:flex;"><span>                             mu <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>),
+</span></span><span style="display:flex;"><span>                             Sigma <span style="color:#f92672">=</span> <span style="color:#a6e22e">matrix</span>(<span style="color:#a6e22e">c</span>(sd_x^2, cov_xy,
+</span></span><span style="display:flex;"><span>                                              cov_xy, sd_y^2),
+</span></span><span style="display:flex;"><span>                                            ncol <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">names</span>(df3) <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;y1&#34;</span>, <span style="color:#e6db74">&#34;y2&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>df3 <span style="color:#f92672">&lt;-</span> df3 <span style="color:#f92672">%&gt;%</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">mutate</span>(y2_mul <span style="color:#f92672">=</span> <span style="color:#a6e22e">ifelse</span>(y2 <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>                         <span style="color:#a6e22e">ifelse</span>(<span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)) <span style="color:#f92672">&lt;</span> y2 <span style="color:#f92672">&amp;</span> y2 <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>                                <span style="color:#a6e22e">ifelse</span>(<span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)) <span style="color:#f92672">&lt;</span> y2 <span style="color:#f92672">&amp;</span> y2 <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.1</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>                                       <span style="color:#a6e22e">ifelse</span>(y2 <span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.1</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">3</span>, <span style="color:#66d9ef">NA</span>)))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>lat_cor <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cor</span>(df3<span style="color:#f92672">$</span>y1, df3<span style="color:#f92672">$</span>y2)
+</span></span><span style="display:flex;"><span>obs_cor <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cor</span>(df3<span style="color:#f92672">$</span>y1, df3<span style="color:#f92672">$</span>y2_mul)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>att_fac <span style="color:#f92672">&lt;-</span> (<span style="color:#a6e22e">cov</span>(df3<span style="color:#f92672">$</span>y1, df3<span style="color:#f92672">$</span>y2_mul)<span style="color:#f92672">/</span><span style="color:#a6e22e">cov</span>(df3<span style="color:#f92672">$</span>y1, df3<span style="color:#f92672">$</span>y2))<span style="color:#f92672">*</span><span style="color:#a6e22e">sqrt</span>(<span style="color:#a6e22e">var</span>(df3<span style="color:#f92672">$</span>y2)<span style="color:#f92672">/</span><span style="color:#a6e22e">var</span>(df3<span style="color:#f92672">$</span>y2_mul))
+</span></span><span style="display:flex;"><span>cal_cor <span style="color:#f92672">&lt;-</span> att_fac<span style="color:#f92672">*</span>lat_cor
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>summary_2 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">round</span>(<span style="color:#a6e22e">c</span>(rho, attenuation_cat, cor_xy_cat, att_fac, cal_cor), <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">names</span>(summary_2) <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Correlation_XY*&#34;</span>, <span style="color:#e6db74">&#34;Attenuation_Formula&#34;</span>, 
+</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Correlation_Formula&#34;</span>, <span style="color:#e6db74">&#34;Attenuation_Data&#34;</span>, 
+</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Correlation_Data&#34;</span>)
+</span></span><span style="display:flex;"><span>knitr<span style="color:#f92672">::</span><span style="color:#a6e22e">kable</span>(summary_2,
+</span></span><span style="display:flex;"><span>             align <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;c&#34;</span>,
+</span></span><span style="display:flex;"><span>             col.names <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>)
+</span></span></code></pre></div><table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:center"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Correlation_XY*</td>
+<td style="text-align:center">0.500</td>
+</tr>
+<tr>
+<td style="text-align:left">Attenuation_Formula</td>
+<td style="text-align:center">0.872</td>
+</tr>
+<tr>
+<td style="text-align:left">Correlation_Formula</td>
+<td style="text-align:center">0.436</td>
+</tr>
+<tr>
+<td style="text-align:left">Attenuation_Data</td>
+<td style="text-align:center">0.872</td>
+</tr>
+<tr>
+<td style="text-align:left">Correlation_Data</td>
+<td style="text-align:center">0.432</td>
+</tr>
+</tbody>
+</table>
+<h1 id="reasoning-of-generalization-to-x-and-y-with-any-means-and-variances">Reasoning of Generalization to X and Y* with Any Means and Variances</h1>
+<p>It is highly probable that <code>\(X\)</code> and <code>\(Y*\)</code> do not follow a standard normal distribution in practical research. We would like to prove that the attenuation of correlation is generalizeable to <code>\(X\)</code> and <code>\(Y^*\)</code> with any means and variances when <code>\(Y^*\)</code> is categorized with any numbers of categories.</p>
+<p>let’s say <code>\(Y^{*}\)</code> is categorized to Y (c = 4; c = [0, 1, 2, 3]),</p>
+<p>Take one category as one example, for <code>\(E(X | Y = 1)\)</code> with <code>\(\tau_{1} \le Y^{*} \le \tau_{2}\)</code> and <code>\(c = 1\)</code>: <code>\(E(X | Y = 1) = \int_{-\infty}^{\infty} \int_{\tau_{1}}^{\tau_{2}} \text{x} y^{*} f_{(x, y^{\ast})} d_{x} d_{y^{*}}\)</code></p>
+<p>Now the distributions of X and Y are dependent on their mean and variance. We can use the z-scores to subsititute limits of integrals.</p>
+<p>Let <code>\(z_{x} = \frac{x - \mu_{x}}{\sigma_{x}}\)</code> and <code>\(z_{y^{*}} = \frac{y^{*} - \mu_{y^{*}}}{\sigma_{y^{*}}}\)</code>, then,</p>
+<p>and,</p>
+<p>Because of the property of derivation,</p>
+<p>, and it is the same for <code>\(d(z_{y^{*}})\)</code></p>
+<p>Thus, the equation of <code>\(E(X | Y = 1)\)</code> becomes</p>
+<p>The “new” values of limits, e.g., <code>\(\frac{\tau_{1} - \mu_{y^{*}}}{\sigma_{y^{*}}}\)</code>, are linear tranformed using the mean and variance of <code>\(Y^{*}\)</code>. It means that no matter how threshold values change due to mean and variance of <code>\(Y^{*}\)</code>, we can always z-tranform them back so that X and <code>\(Y^{*}\)</code> always follow a standard bivariate normal distribution. In other words, as long as we know the threshold values and proportion of categories of the categorized variable, and X and <code>\(Y^{*}\)</code> follow normal distributions, we should be able to compute the attenuated <code>\(R^2\)</code> no matter the mean and variance of <code>\(Y^{*}\)</code>.</p>
+<h1 id="verification-with-simulated-data-random-mean-and-variance">Verification with simulated data (random mean and variance)</h1>
+<p>Now it’s time to verify if our reasoning works with any means and variances for dichotomous <code>\(Y\)</code> and categorical <code>\(Y\)</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>rho <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0.5</span>
+</span></span><span style="display:flex;"><span>sd_x <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">rnorm</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0.5</span>)
+</span></span><span style="display:flex;"><span>sd_y <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">rnorm</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1.5</span>, <span style="color:#ae81ff">0.3</span>)
+</span></span><span style="display:flex;"><span>cov_xy <span style="color:#f92672">&lt;-</span> rho<span style="color:#f92672">*</span>sd_x<span style="color:#f92672">*</span>sd_y
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>df2 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as.data.frame</span>(<span style="color:#a6e22e">mvrnorm</span>(n <span style="color:#f92672">=</span> <span style="color:#ae81ff">1e7</span>,
+</span></span><span style="display:flex;"><span>                              mu <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#a6e22e">rnorm</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">2.1</span>), <span style="color:#a6e22e">rnorm</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">1.1</span>)),
+</span></span><span style="display:flex;"><span>                              Sigma <span style="color:#f92672">=</span> <span style="color:#a6e22e">matrix</span>(<span style="color:#a6e22e">c</span>(sd_x^2, cov_xy,
+</span></span><span style="display:flex;"><span>                                               cov_xy, sd_y^2),
+</span></span><span style="display:flex;"><span>                                             ncol <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">names</span>(df2) <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;y1&#34;</span>, <span style="color:#e6db74">&#34;y2&#34;</span>)
+</span></span><span style="display:flex;"><span>df2 <span style="color:#f92672">&lt;-</span> df2 <span style="color:#f92672">%&gt;%</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">mutate</span>(y2_cat <span style="color:#f92672">=</span> <span style="color:#a6e22e">ifelse</span>(y2 <span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.7</span>, <span style="color:#a6e22e">mean</span>(df2<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df2<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>lat_cor <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cor</span>(df2<span style="color:#f92672">$</span>y1, df2<span style="color:#f92672">$</span>y2)
+</span></span><span style="display:flex;"><span>obs_cor <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cor</span>(df2<span style="color:#f92672">$</span>y1, df2<span style="color:#f92672">$</span>y2_cat)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>att_fac <span style="color:#f92672">&lt;-</span> (<span style="color:#a6e22e">cov</span>(df2<span style="color:#f92672">$</span>y1, df2<span style="color:#f92672">$</span>y2_cat)<span style="color:#f92672">/</span><span style="color:#a6e22e">cov</span>(df2<span style="color:#f92672">$</span>y1, df2<span style="color:#f92672">$</span>y2))<span style="color:#f92672">*</span><span style="color:#a6e22e">sqrt</span>(<span style="color:#a6e22e">var</span>(df2<span style="color:#f92672">$</span>y2)<span style="color:#f92672">/</span><span style="color:#a6e22e">var</span>(df2<span style="color:#f92672">$</span>y2_cat))
+</span></span><span style="display:flex;"><span>cal_cor <span style="color:#f92672">&lt;-</span> att_fac<span style="color:#f92672">*</span>lat_cor
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>summary_3 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">round</span>(<span style="color:#a6e22e">c</span>(rho, attenuation_bi, cor_xy_bi, att_fac, cal_cor), <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">names</span>(summary_3) <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Correlation_XY*&#34;</span>, <span style="color:#e6db74">&#34;Attenuation_Formula&#34;</span>, 
+</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Correlation_Formula&#34;</span>, <span style="color:#e6db74">&#34;Attenuation_Data&#34;</span>, 
+</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Correlation_Data&#34;</span>)
+</span></span><span style="display:flex;"><span>knitr<span style="color:#f92672">::</span><span style="color:#a6e22e">kable</span>(summary_3,
+</span></span><span style="display:flex;"><span>             align <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;c&#34;</span>,
+</span></span><span style="display:flex;"><span>             col.names <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>)
+</span></span></code></pre></div><table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:center"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Correlation_XY*</td>
+<td style="text-align:center">0.500</td>
+</tr>
+<tr>
+<td style="text-align:left">Attenuation_Formula</td>
+<td style="text-align:center">0.759</td>
+</tr>
+<tr>
+<td style="text-align:left">Correlation_Formula</td>
+<td style="text-align:center">0.379</td>
+</tr>
+<tr>
+<td style="text-align:left">Attenuation_Data</td>
+<td style="text-align:center">0.758</td>
+</tr>
+<tr>
+<td style="text-align:left">Correlation_Data</td>
+<td style="text-align:center">0.379</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>rho <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">0.5</span>
+</span></span><span style="display:flex;"><span>sd_x <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">rnorm</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0.5</span>)
+</span></span><span style="display:flex;"><span>sd_y <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">rnorm</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1.5</span>, <span style="color:#ae81ff">0.3</span>)
+</span></span><span style="display:flex;"><span>cov_xy <span style="color:#f92672">&lt;-</span> rho<span style="color:#f92672">*</span>sd_x<span style="color:#f92672">*</span>sd_y
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>df3 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as.data.frame</span>(<span style="color:#a6e22e">mvrnorm</span>(n <span style="color:#f92672">=</span> <span style="color:#ae81ff">1e7</span>,
+</span></span><span style="display:flex;"><span>                             mu <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#a6e22e">rnorm</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">2.1</span>), <span style="color:#a6e22e">rnorm</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">1.1</span>)),
+</span></span><span style="display:flex;"><span>                             Sigma <span style="color:#f92672">=</span> <span style="color:#a6e22e">matrix</span>(<span style="color:#a6e22e">c</span>(sd_x^2, cov_xy,
+</span></span><span style="display:flex;"><span>                                              cov_xy, sd_y^2),
+</span></span><span style="display:flex;"><span>                                            ncol <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">names</span>(df3) <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;y1&#34;</span>, <span style="color:#e6db74">&#34;y2&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>df3 <span style="color:#f92672">&lt;-</span> df3 <span style="color:#f92672">%&gt;%</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">mutate</span>(y2_mul <span style="color:#f92672">=</span> <span style="color:#a6e22e">ifelse</span>(y2 <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>                         <span style="color:#a6e22e">ifelse</span>(<span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)) <span style="color:#f92672">&lt;</span> y2 <span style="color:#f92672">&amp;</span> y2 <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>                                <span style="color:#a6e22e">ifelse</span>(<span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)) <span style="color:#f92672">&lt;</span> y2 <span style="color:#f92672">&amp;</span> y2 <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.1</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>                                       <span style="color:#a6e22e">ifelse</span>(y2 <span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">qnorm</span>(<span style="color:#ae81ff">0.5</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.3</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.1</span>, <span style="color:#a6e22e">mean</span>(df3<span style="color:#f92672">$</span>y2), <span style="color:#a6e22e">sd</span>(df3<span style="color:#f92672">$</span>y2)), <span style="color:#ae81ff">3</span>, <span style="color:#66d9ef">NA</span>)))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>lat_cor <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cor</span>(df3<span style="color:#f92672">$</span>y1, df3<span style="color:#f92672">$</span>y2)
+</span></span><span style="display:flex;"><span>obs_cor <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">cor</span>(df3<span style="color:#f92672">$</span>y1, df3<span style="color:#f92672">$</span>y2_mul)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>att_fac <span style="color:#f92672">&lt;-</span> (<span style="color:#a6e22e">cov</span>(df3<span style="color:#f92672">$</span>y1, df3<span style="color:#f92672">$</span>y2_mul)<span style="color:#f92672">/</span><span style="color:#a6e22e">cov</span>(df3<span style="color:#f92672">$</span>y1, df3<span style="color:#f92672">$</span>y2))<span style="color:#f92672">*</span><span style="color:#a6e22e">sqrt</span>(<span style="color:#a6e22e">var</span>(df3<span style="color:#f92672">$</span>y2)<span style="color:#f92672">/</span><span style="color:#a6e22e">var</span>(df3<span style="color:#f92672">$</span>y2_mul))
+</span></span><span style="display:flex;"><span>cal_cor <span style="color:#f92672">&lt;-</span> att_fac<span style="color:#f92672">*</span>lat_cor
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>summary_4 <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">round</span>(<span style="color:#a6e22e">c</span>(rho, attenuation_cat, cor_xy_cat, att_fac, cal_cor), <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">names</span>(summary_4) <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Correlation_XY*&#34;</span>, <span style="color:#e6db74">&#34;Attenuation_Formula&#34;</span>, 
+</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Correlation_Formula&#34;</span>, <span style="color:#e6db74">&#34;Attenuation_Data&#34;</span>, 
+</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Correlation_Data&#34;</span>)
+</span></span><span style="display:flex;"><span>knitr<span style="color:#f92672">::</span><span style="color:#a6e22e">kable</span>(summary_4,
+</span></span><span style="display:flex;"><span>             align <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;c&#34;</span>,
+</span></span><span style="display:flex;"><span>             col.names <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; &#34;</span>)
+</span></span></code></pre></div><table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:center"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Correlation_XY*</td>
+<td style="text-align:center">0.500</td>
+</tr>
+<tr>
+<td style="text-align:left">Attenuation_Formula</td>
+<td style="text-align:center">0.872</td>
+</tr>
+<tr>
+<td style="text-align:left">Correlation_Formula</td>
+<td style="text-align:center">0.436</td>
+</tr>
+<tr>
+<td style="text-align:left">Attenuation_Data</td>
+<td style="text-align:center">0.872</td>
+</tr>
+<tr>
+<td style="text-align:left">Correlation_Data</td>
+<td style="text-align:center">0.436</td>
+</tr>
+</tbody>
+</table>
+<p>It seems that the comparison of attenuated <code>\(R^2\)</code> values calculated by the formula and from the simulated results are highly similar.</p>
+
+    </div>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+

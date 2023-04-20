@@ -55,8 +55,8 @@ knitr::kable(table(df$Y)/nrow(df),
 
 | Label | Proportion |
 |:-----:|:----------:|
-|   0   |   0.701    |
-|   1   |   0.299    |
+|   0   |   0.7033   |
+|   1   |   0.2967   |
 
 ``` r
 
@@ -69,7 +69,7 @@ knitr::kable(
 
 | `\(\rho_{(X, Y*)}\)` | `\(\rho_{(X, Y)}\)` |
 |---------------------:|--------------------:|
-|            0.4865838 |            0.365661 |
+|            0.5052412 |           0.3865577 |
 
 From this example, we can see the correlation is attenuated when one of the continuous variable is dichotomized. According to the correlation formula and expectation of covariance formula, we can derive the attenuation factor due to categorization. Note that the value of dichotomozing `\(Y*\)` for desired proportion is called `threshold`.
 
@@ -113,8 +113,8 @@ knitr::kable(summary_1,
 | Correlation_XY\*    | 0.500 |
 | Attenuation_Formula | 0.759 |
 | Correlation_Formula | 0.379 |
-| Attenuation_Data    | 0.751 |
-| Correlation_Data    | 0.366 |
+| Attenuation_Data    | 0.765 |
+| Correlation_Data    | 0.387 |
 
 ## An Example of Attenuated Correlation for Categorical Variable with Three Thresholds
 
@@ -191,8 +191,8 @@ knitr::kable(summary_2,
 | Correlation_XY\*    | 0.500 |
 | Attenuation_Formula | 0.872 |
 | Correlation_Formula | 0.436 |
-| Attenuation_Data    | 0.879 |
-| Correlation_Data    | 0.433 |
+| Attenuation_Data    | 0.872 |
+| Correlation_Data    | 0.432 |
 
 # Reasoning of Generalization to X and Y\* with Any Means and Variances
 
